@@ -1,0 +1,159 @@
+# Default values for iorad-cdn.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+revision: ""
+
+
+image:
+  repository: nginx
+  tag: alpine-perl
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+cdnConf: |-
+  server {
+      listen       80;
+      server_name ~^(.+)$;
+
+      #charset koi8-r;
+      #access_log  /var/log/nginx/log/host.access.log  main;
+
+      # root /opt/app/static;
+
+      # health check
+      location /healthz {
+        add_header Content-Type text/plain;
+        return 200 "OK\n";
+        access_log off;
+      }
+
+      location ~ ^/assets/avatars/ {
+          add_header 'Access-Control-Allow-Origin' '*';
+          add_header 'Access-Control-Allow-Methods' 'GET';
+          root /mnt/storage/iorad/;
+          autoindex on;
+      }
+
+      location ~ ^/assets/favicons/ {
+          add_header 'Access-Control-Allow-Origin' '*';
+          add_header 'Access-Control-Allow-Methods' 'GET';
+          root /mnt/storage/iorad/;
+          autoindex on;
+      }
+
+      location ~ ^/(dist|_dist|assets)/ {
+          add_header 'Access-Control-Allow-Origin' '*';
+          add_header 'Access-Control-Allow-Methods' 'GET';
+          root /mnt/storage/iorad/static;
+          autoindex on;
+      }
+
+      location ~ ^/server/ {
+          root /mnt/storage/iorad/static;
+          rewrite ^/server/(.*)$ /$1 break;
+          add_header 'Access-Control-Allow-Origin' '*';
+          add_header 'Access-Control-Allow-Methods' 'GET';
+      }
+
+      location ~ ^/server/webstart/.*[A-Z].* {
+          root /mnt/storage/iorad/static/webstart/;
+          perl 'sub { my $r = shift; $r->internal_redirect(lc($r->uri)); }';
+      }
+
+      location ~ ^/webstart/.*[A-Z].* {
+          root /mnt/storage/iorad/static/webstart/;
+          perl 'sub { my $r = shift; $r->internal_redirect(lc($r->uri)); }';
+      }
+
+
+      location /capture/tutorials {
+          add_header 'Access-Control-Allow-Origin' '*';
+          add_header 'Access-Control-Allow-Methods' 'GET';
+          root /mnt/storage/iorad/;
+          autoindex on;
+      }
+
+      location / {
+          root /mnt/storage/iorad/static;
+          index index.html index.htm;
+      }
+
+      #error_page  404              /404.html;
+
+      # redirect server error pages to the static page /50x.html
+      #
+      error_page   500 502 503 504  /50x.html;
+      location = /50x.html {
+          root   /usr/share/nginx/html;
+      }
+  }
+
+
+livenessProbe:
+  httpGet:
+    path: /healthz/
+    port: http
+  initialDelaySeconds: 10
+  timeoutSeconds: 5
+readinessProbe:
+  httpGet:
+    path: /healthz/
+    port: http
+  initialDelaySeconds: 10
+  timeoutSeconds: 5
+
+
+volumeMounts:
+- name: storage
+  mountPath: /mnt/storage/
+  # subPath: storage # should use subPath by default so that we can use one pvc for all (TODO)
+
+
+volumes:
+- name: storage
+  persistentVolumeClaim:
+    claimName: # specify the right pvc name
+    existing: true
+
+service:
+  type: ClusterIP
+  port: 80
+
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # add an annotation indicating the issuer to use.
+    certmanager.k8s.io/cluster-issuer: ca-cluster-issuer # letencrypt-cluster-issuer
+  path: /
+  hosts:
+  - cdn.iorad.k8s.local
+  tls: # < placing a host in the TLS config will indicate a cert should be created
+  - hosts:
+    - cdn.iorad.k8s.local
+    secretName: cdn-iorad-k8s-local-tls
+
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  requests:
+   cpu: 1m
+   memory: 4Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
