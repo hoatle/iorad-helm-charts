@@ -1,0 +1,17 @@
+apiVersion: v1
+entries:
+  example:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-02-21T05:09:30.335950023Z"
+    description: A Helm chart for Kubernetes
+    digest: a1bffd0f71a9fbd73d660b6fc23c809b4b269e02a8f6a0bab65e5f2dae3dc4f8
+    maintainers:
+    - email: hq@teracy.com
+      name: teracyhq
+    name: example
+    type: application
+    urls:
+    - https://github.com/hoatle/iorad-helm-charts/releases/download/example-0.1.0-alpha.1/example-0.1.0-alpha.1.tgz
+    version: 0.1.0-alpha.1
+generated: "2022-02-21T05:09:30.129344361Z"
