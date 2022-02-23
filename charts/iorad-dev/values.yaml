@@ -1,0 +1,281 @@
+# Default values for iorad.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+
+nameOverride: ""
+fullnameOverride: ""
+
+
+src:
+  image: iorad/src
+  pullPolicy: IfNotPresent
+
+app:
+  image: iorad/iorad-dev-app
+  pullPolicy: IfNotPresent
+  # livenessProbe:
+  #   exec:
+  #     command:
+  #     - cat
+  #     - /opt/app/node/static/_dist/player.html
+  #   initialDelaySeconds: 480
+  #   timeoutSeconds: 20
+  #   periodSeconds: 10
+  # readinessProbe:
+  #   exec:
+  #     command:
+  #     - cat
+  #     - /opt/app/node/static/_dist/player.html
+  #   initialDelaySeconds: 240
+  #   timeoutSeconds: 20
+  #   periodSeconds: 10
+  #   failureThreshold: 10
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 100Mi
+
+# same image with dev
+webpack:
+  livenessProbe:
+    exec:
+      command:
+      - cat
+      - /opt/app/node/webpack-assets.json
+    initialDelaySeconds: 400
+    timeoutSeconds: 20
+    periodSeconds: 10
+  readinessProbe:
+    exec:
+      command:
+      - cat
+      - /opt/app/node/webpack-assets.json
+    initialDelaySeconds: 180
+    timeoutSeconds: 20
+    periodSeconds: 10
+    failureThreshold: 10
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    requests:
+      cpu: 200m
+      memory: 800Mi
+
+dev:
+  image: iorad/iorad-dev-node
+  pullPolicy: IfNotPresent
+  # available only on k8s >= 1.16
+  # startupProbe:
+  #   httpGet:
+  #     path: /
+  #     port: dev
+  #   failureThreshold: 40
+  #   periodSeconds: 10
+  # livenessProbe:
+  #   httpGet:
+  #     path: /healthz
+  #     port: dev
+  #   initialDelaySeconds: 420
+  #   timeoutSeconds: 20
+  #   periodSeconds: 20
+  # readinessProbe:
+  #   httpGet:
+  #     path: /healthz
+  #     port: dev
+  #   initialDelaySeconds: 260
+  #   timeoutSeconds: 20
+  #   periodSeconds: 10
+  #   failureThreshold: 20
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    requests:
+      cpu: 200m
+      memory: 800Mi
+
+
+configMapEnv:
+  LOGGING_LEVEL: debug
+
+
+secretEnv: {}
+
+
+volumes:
+- name: storage  # you can define other kinds of volumes instead of pvc
+  persistentVolumeClaim:
+    claimName: iorad-storage-dev
+    existing: true
+
+
+service:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: dev
+    protocol: TCP
+    name: dev
+
+webpackService:
+  type: ClusterIP
+  ports:
+  - port: 3001
+    targetPort: webpack
+    protocol: TCP
+    name: webpack
+
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # add an annotation indicating the issuer to use.
+    certmanager.k8s.io/cluster-issuer: ca-cluster-issuer  # letsencrypt-cluster-issuer
+    # sticky session
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+  hosts:
+  - host: iorad-dev.k8s.local
+    http:
+      paths:
+      - backend:
+          serviceName:  # empty so use the created service name
+          servicePort: dev
+        path: /
+  - host: iorad-dev-webpack.k8s.local
+    http:
+      paths:
+      - backend:
+          serviceName: iorad-dev-webpack  # adjust this accordingly to match the created serviceName
+          servicePort: webpack
+        path: /
+  tls:  # < placing a host in the TLS config will indicate a cert should be created
+  - hosts:
+    - iorad-dev.k8s.local
+    secretName: iorad-dev-k8s-local-tls
+  - hosts:
+    - iorad-dev-webpack.k8s.local
+    secretName: iorad-dev-webpack-k8s-local-tls
+
+# url rewrite for legacy porting
+ingressRewrite:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # sticky session
+    # nginx.ingress.kubernetes.io/affinity: "cookie"
+    # nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    # nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    # nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+  hosts:
+  - host: iorad-dev.k8s.local
+    http:
+      paths:
+      - backend:
+          serviceName: iorad-cdn-dev  # iorad-cdn service name
+          servicePort: http
+        path: /(webstart\/.*)
+      - backend:
+          serviceName: iorad-cdn-dev  # iorad-cdn service name
+          servicePort: http
+        path: /(server/webstart\/.*)
+  tls:  # < placing a host in the TLS config will indicate a cert should be created
+  - hosts:
+    - iorad-dev.k8s.local
+    secretName: iorad-dev-k8s-local-tls
+
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+##
+## mysql chart configuration
+##
+mysql:
+  enabled: false  # to use mysqlha by default instead
+  imageTag: 5.6  # to use for wait-for-db init container
+  host:  # for external db
+  port: 3306
+  # mysqlRootPassword: iorad
+  mysqlUser:
+  mysqlPassword:
+  mysqlDatabase:
+  # persistence:
+  #   existingClaim: iorad-mysql
+
+
+migration:
+  enabled: false
+  repository: python
+  tag: 2.7-stretch
+  resources: {}
+    # limits:
+    #   cpu: 256m
+    #   memory: 100Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  volumes:
+    - name: storage  # you can define other kinds of volumes instead of pvc
+      persistentVolumeClaim:
+        claimName: iorad-storage-dev  # specify the right pvc name
+        existing: true
+  volumeMounts:
+    - mountPath: /opt/iorad
+      name: storage
+      subPath: iorad
+  command: |
+    # copy files into the container instead of nfs volume to improve nomad performance
+    echo "mkdir -p /opt/app"
+    mkdir -p /opt/app
+    echo "cp -rf /opt/iorad/migrations /opt/app/"
+    cp -rf /opt/iorad/migrations /opt/app/
+    echo "cd /opt/app/migrations"
+    cd /opt/app/migrations
+    echo "pip install -r requirements.txt"
+    pip install -r requirements.txt
+    echo "nomad apply -a --init"
+    nomad apply -a --init
+
+# imagePullSecrets:
+#   - name: registry.gitlab.com
+
+redis:
+  enabled: true
+  password: secret
+  cluster:
+    enabled: false
+  master:
+    persistence:
+      size: 1Gi
