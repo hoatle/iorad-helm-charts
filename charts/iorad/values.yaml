@@ -56,9 +56,9 @@ volumeMounts:
   # subPath: storage # should use subPath by default so that we can use one pvc for all (TODO)
 
 volumes:
-- name: storage # you can define other kinds of volumes instead of pvc
+- name: storage  # you can define other kinds of volumes instead of pvc
   persistentVolumeClaim:
-    claimName: # specify the right pvc name
+    claimName:  # specify the right pvc name
     existing: true
 
 service:
@@ -71,7 +71,7 @@ ingress:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/rewrite-target: /
     # add an annotation indicating the issuer to use.
-    certmanager.k8s.io/cluster-issuer: ca-cluster-issuer # letsencrypt-cluster-issuer
+    certmanager.k8s.io/cluster-issuer: ca-cluster-issuer  # letsencrypt-cluster-issuer
     # sticky session
     # nginx.ingress.kubernetes.io/affinity: "cookie"
     # nginx.ingress.kubernetes.io/session-cookie-name: "route"
@@ -93,7 +93,7 @@ ingress:
   path: /
   hosts:
   - iorad.k8s.local
-  tls: # < placing a host in the TLS config will indicate a cert should be created
+  tls:  # < placing a host in the TLS config will indicate a cert should be created
   - hosts:
     - iorad.k8s.local
     secretName: iorad-k8s-local-tls
@@ -114,14 +114,14 @@ ingressRewrite:
       http:
         paths:
         - backend:
-            serviceName: iorad-cdn-dev # iorad-cdn service name
+            serviceName: iorad-cdn-dev  # iorad-cdn service name
             servicePort: http
           path: /(webstart\/.*)
         - backend:
-            serviceName: iorad-cdn-dev # iorad-cdn service name
+            serviceName: iorad-cdn-dev  # iorad-cdn service name
             servicePort: http
           path: /(server/webstart\/.*)
-  tls: # < placing a host in the TLS config will indicate a cert should be created
+  tls:  # < placing a host in the TLS config will indicate a cert should be created
   - hosts:
     - iorad.k8s.local
     secretName: iorad-k8s-local-tls
@@ -136,8 +136,8 @@ resources:
   #  cpu: 100m
   #  memory: 128Mi
   requests:
-   cpu: 15m
-   memory: 450Mi
+    cpu: 15m
+    memory: 450Mi
 
 nodeSelector: {}
 
@@ -150,9 +150,9 @@ affinity: {}
 ## mysql chart configuration
 ##
 mysql:
-  enabled: false # to use mysqlha by default instead
-  imageTag: 5.7 # to use for wait-for-db init container
-  host: # for external db
+  enabled: false  # to use mysqlha by default instead
+  imageTag: 5.7  # to use for wait-for-db init container
+  host:  # for external db
   port: 3306
   # mysqlRootPassword: iorad
   mysqlUser:
