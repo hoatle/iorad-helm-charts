@@ -1,0 +1,191 @@
+# Default values for iorad.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+#
+replicaCount: 1
+
+revision:
+
+image:
+  repository: iorad/app
+  tag: develop
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+lifecycle:
+  postStart:
+    exec:
+      command:
+      - sh
+      - -c
+      - |
+        # save origin file
+        ls /opt/app/node/static > /opt/app/node/static/origin_static_dir.txt
+        ls /opt/app/node/static/dist > /opt/app/node/static/dist/origin_dist_dir.txt
+
+        # for cdn
+        cp -rf /opt/app/node/static/. /mnt/storage/iorad/static/
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 240
+  timeoutSeconds: 30
+  periodSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 120
+  timeoutSeconds: 30
+  periodSeconds: 10
+  failureThreshold: 10
+
+
+configMapEnv: {}
+
+secretEnv: {}
+
+
+volumeMounts:
+- name: storage
+  mountPath: /mnt/storage/
+  # subPath: storage # should use subPath by default so that we can use one pvc for all (TODO)
+
+volumes:
+- name: storage  # you can define other kinds of volumes instead of pvc
+  persistentVolumeClaim:
+    claimName: iorad-storage-develop  # specify the right pvc name
+    existing: true
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # add an annotation indicating the issuer to use.
+    certmanager.k8s.io/cluster-issuer: ca-cluster-issuer  # letsencrypt-cluster-issuer
+    # sticky session
+    # nginx.ingress.kubernetes.io/affinity: "cookie"
+    # nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    # nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    # nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+    # upload size limit
+    nginx.ingress.kubernetes.io/proxy-body-size: 20m
+    nginx.ingress.kubernetes.io/client-header-buffer-size: 64k
+    nginx.ingress.kubernetes.io/large-client-header-buffers: 8 64k
+    # static redirect
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      rewrite ^/user/createNewDesktopTutorial/(.*)$ /createNewDesktopTutorial/$1 redirect;
+      rewrite ^/hrtech$ https://www.iorad.com/checkout?specialPlanId=494 redirect;
+      rewrite ^/360learning-partner$ https://sites.google.com/iorad.com/360learning/home redirect;
+      rewrite ^/lessonly-partner$ https://sites.google.com/iorad.com/lessonly/home redirect;
+      rewrite ^/workramp-partner$ https://sites.google.com/iorad.com/workramp/home redirect;
+      rewrite ^/blog/?$ https://theioradlife.com redirect;
+
+  path: /
+  hosts:
+  - iorad.k8s.local
+  tls:  # < placing a host in the TLS config will indicate a cert should be created
+  - hosts:
+    - iorad.k8s.local
+    secretName: iorad-k8s-local-tls
+
+# url rewrite for legacy porting
+ingressRewrite:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # sticky session
+    # nginx.ingress.kubernetes.io/affinity: "cookie"
+    # nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    # nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    # nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+  hosts:
+    - host: iorad.k8s.local
+      http:
+        paths:
+        - backend:
+            serviceName: iorad-cdn-dev  # iorad-cdn service name
+            servicePort: http
+          path: /(webstart\/.*)
+        - backend:
+            serviceName: iorad-cdn-dev  # iorad-cdn service name
+            servicePort: http
+          path: /(server/webstart\/.*)
+  tls:  # < placing a host in the TLS config will indicate a cert should be created
+  - hosts:
+    - iorad.k8s.local
+    secretName: iorad-k8s-local-tls
+
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  requests:
+    cpu: 15m
+    memory: 450Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+##
+## mysql chart configuration
+##
+mysql:
+  enabled: false  # to use mysqlha by default instead
+  imageTag: 5.7  # to use for wait-for-db init container
+  host:  # for external db
+  port: 3306
+  # mysqlRootPassword: iorad
+  mysqlUser:
+  mysqlPassword:
+  mysqlDatabase:
+  # persistence:
+  #   existingClaim: iorad--mysql
+
+
+migration:
+  enabled: false
+  repository: iorad/migration
+  tag: develop
+  resources: {}
+    # limits:
+    #   cpu: 256m
+    #   memory: 100Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+
+# imagePullSecrets:
+#   - name: registry.gitlab.com
+
+redis:
+  enabled: true
+  password: secret
+  cluster:
+    enabled: false
+  master:
+    persistence:
+      size: 1Gi
