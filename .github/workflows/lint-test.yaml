@@ -47,6 +47,21 @@ jobs:
           config: kind/kind-config.yaml
         if: steps.list-changed.outputs.changed == 'true'
 
+      - name: Load kind docker images
+        run: |
+          changed_list=$(ct list-changed --config ct.yaml)
+
+          if [[ -n "$changed_list" ]]; then
+              for i in "${changed_list[@]}"
+              do
+                  if  [[ $i == charts/* ]];
+                  then
+                      find ./$i -name "autorun.sh" -exec chmod +x {} \; -exec {} $CLUSTER_NAME \;
+                  fi
+              done
+          fi   
+        if: steps.list-changed.outputs.changed == 'true'
+
         # should create different k8s cluster versions
 
       - name: Run chart-testing (install)

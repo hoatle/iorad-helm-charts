@@ -1,0 +1,11 @@
+{
+  "name": "iorad",
+  "version": "0.1",
+  "description": "iorad chart example",
+  "scripts": {
+    "app": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.3"
+  }
+}

@@ -57,13 +57,32 @@ create_kind_cluster() {
     echo
 }
 
+load_kind_docker_image() {
+    local changed_list=$(docker_exec ct list-changed --config ct.yaml)
+
+    if [[ -n "$changed_list" ]]; then
+        for i in "${changed_list[@]}"
+        do
+            if  [[ $i == charts/* ]];
+            then
+                echo "$i"
+                find ./$i -name "autorun.sh" -exec chmod +x {} \; -exec {} $CLUSTER_NAME \; # 2>/dev/null 
+            fi
+            
+        done
+    fi    
+
+    docker_exec kubectl get pvc
+    echo
+}
+
 lint_charts() {
     docker_exec ct lint
     echo
 }
 
 install_charts() {
-    docker_exec ct install
+    docker_exec ct install --namespace default
     echo
 }
 
@@ -72,6 +91,7 @@ main() {
     trap cleanup EXIT
     lint_charts
     create_kind_cluster
+    load_kind_docker_image
     install_charts
 }
 

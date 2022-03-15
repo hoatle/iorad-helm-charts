@@ -26,6 +26,7 @@ lifecycle:
         ls /opt/app/node/static/dist > /opt/app/node/static/dist/origin_dist_dir.txt
 
         # for cdn
+        mkdir -p /mnt/storage/iorad/static
         cp -rf /opt/app/node/static/. /mnt/storage/iorad/static/
 
 livenessProbe:
