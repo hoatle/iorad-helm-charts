@@ -56,14 +56,13 @@ jobs:
               do
                   if  [[ $i == charts/* ]];
                   then
-                      find ./$i -name "autorun.sh" -exec chmod +x {} \; -exec {} $CLUSTER_NAME \;
+                      find ./$i -name "autorun.sh" -exec chmod +x {} \; -exec {} \;
                   fi
               done
           fi   
         if: steps.list-changed.outputs.changed == 'true'
 
         # should create different k8s cluster versions
-
       - name: Run chart-testing (install)
-        run: ct install --config ct.yaml
-        timeout-minutes: 30
+        run: ct install --namespace default --config ct.yaml
+        timeout-minutes: 10

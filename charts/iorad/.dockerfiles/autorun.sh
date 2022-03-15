@@ -12,6 +12,12 @@ readonly CLUSTER_NAME=${1:-'chart-testing'}
 
 docker exec --interactive ct kubectl apply -f charts/iorad/.dockerfiles/pvc.yaml
 
+if hash ct 2>/dev/null; then
+    ct kubectl apply -f charts/iorad/.dockerfiles/pvc.yaml
+else
+    docker exec --interactive ct kubectl apply -f charts/iorad/.dockerfiles/pvc.yaml
+fi
+
 echo "docker build -t iorad/app:develop $SCRIPT_PATH"
 
 docker build -t iorad/app:develop $SCRIPT_PATH
