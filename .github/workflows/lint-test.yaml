@@ -65,4 +65,4 @@ jobs:
         # should create different k8s cluster versions
       - name: Run chart-testing (install)
         run: ct install --namespace default --config ct.yaml
-        timeout-minutes: 10
+        timeout-minutes: 30
