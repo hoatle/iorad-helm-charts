@@ -11,7 +11,7 @@ popd  > /dev/null
 readonly CLUSTER_NAME=${1:-'chart-testing'}
 
 if hash ct 2>/dev/null; then
-  ct kubectl apply -f charts/iorad-dev/.dockerfiles/pvc.yaml
+  kubectl apply -f charts/iorad-dev/.dockerfiles/pvc.yaml
 else
   docker exec --interactive ct kubectl apply -f charts/iorad-dev/.dockerfiles/pvc.yaml
 fi
