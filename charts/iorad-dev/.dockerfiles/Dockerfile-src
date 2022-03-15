@@ -1,0 +1,9 @@
+FROM alpine:3.11
+
+RUN mkdir -p /opt/app/
+RUN mkdir -p /opt/src/
+
+ENV APP=/opt/app
+WORKDIR $APP
+
+ADD . /opt/src/

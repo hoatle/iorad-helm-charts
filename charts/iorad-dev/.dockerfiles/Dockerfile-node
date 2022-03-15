@@ -1,0 +1,11 @@
+ARG NODE_VERSION=12.22
+
+FROM node:$NODE_VERSION
+
+RUN mkdir -p /opt/app
+
+ENV TERM=xterm APP=/opt/app
+
+COPY node/package.json $APP/node/
+
+WORKDIR $APP/node
