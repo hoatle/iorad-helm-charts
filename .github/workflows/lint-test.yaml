@@ -47,6 +47,16 @@ jobs:
           config: kind/kind-config.yaml
         if: steps.list-changed.outputs.changed == 'true'
 
+      - name: Login to Docker registries
+        uses: teracyhq-incubator/.github/actions/docker-multiple-login-develop@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          gcr-json-key-base64: ${{ secrets.GCR_KEY_FILE_BASE64 }}
+
+      - name: Patch GPG key's secret
+        run: |
+          kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "gcr.io"}]}'
+
       - name: Load kind docker images
         run: |
           changed_list=$(ct list-changed --config ct.yaml)
@@ -56,7 +66,8 @@ jobs:
               do
                   if  [[ $i == charts/* ]];
                   then
-                      find ./$i -name "autorun.sh" -exec chmod +x {} \; -exec {} \;
+                      echo "$i";
+                      find ./$i -name "autorun.sh" -exec chmod +x {} \; -exec {} \; || true
                   fi
               done
           fi   
@@ -64,5 +75,6 @@ jobs:
 
         # should create different k8s cluster versions
       - name: Run chart-testing (install)
-        run: ct install --namespace default --config ct.yaml
+        run: |
+          ct install --namespace default --config ct.yaml --charts charts/iorad
         timeout-minutes: 30

@@ -10,11 +10,15 @@ popd  > /dev/null
 
 readonly CLUSTER_NAME=${1:-'chart-testing'}
 
-if hash ct 2>/dev/null; then
-  kubectl apply -f charts/iorad-dev/.dockerfiles/pvc.yaml
-else
-  docker exec --interactive ct kubectl apply -f charts/iorad-dev/.dockerfiles/pvc.yaml
-fi
+docker_exec() {
+  if hash ct 2>/dev/null; then
+    "$@"
+  else
+    docker exec --interactive ct "$@"
+  fi
+}
+
+docker_exec kubectl apply -f charts/iorad-dev/.dockerfiles/pvc.yaml
 
 echo "docker build -t iorad/iorad-dev-app $SCRIPT_PATH"
 
@@ -24,4 +28,4 @@ docker build -t iorad/iorad-dev-node -f $SCRIPT_PATH/Dockerfile-node $SCRIPT_PAT
 
 echo "kind load docker-image iorad/iorad-dev-app iorad/iorad-dev-node iorad/src --name $CLUSTER_NAME"
 
-kind load docker-image  iorad/src iorad/iorad-dev-node iorad/iorad-dev-app --name $CLUSTER_NAME
+kind load docker-image  iorad/src iorad/iorad-dev-node iorad/iorad-dev-app --name $CLUSTER_NAME || true

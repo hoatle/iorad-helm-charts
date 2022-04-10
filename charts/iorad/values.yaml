@@ -7,7 +7,7 @@ replicaCount: 1
 revision:
 
 image:
-  repository: iorad/app
+  repository: gcr.io/teracy-iorad/iorad/iorad/app
   tag: develop
   pullPolicy: IfNotPresent
 
@@ -165,7 +165,7 @@ mysql:
 
 migration:
   enabled: false
-  repository: iorad/migration
+  repository: gcr.io/teracy-iorad/iorad/migration
   tag: develop
   resources: {}
     # limits:
@@ -180,6 +180,7 @@ migration:
 
 
 # imagePullSecrets:
+#  - name: gcr.io
 #   - name: registry.gitlab.com
 
 redis:
