@@ -47,8 +47,10 @@ readinessProbe:
 
 
 configMapEnv:
+  API_HOST: localhost
+  API_PORT: 3030
   GOOGLE_CLIENT_ID: 473312344366-0h62k936v0bbl00ceelsrn68ibudkpds.apps.googleusercontent.com
-  RECAPTCHA_V3_SITE_KEY: 6Lc09rQUAAAAAHcEPwhvhuhUqvdtQn_SOQnYBW28
+  RECAPTCHA_V3_SITE_KEY: testing
   GOOGLE_EXTENSION_ID: fheghmognccmbkljflobhkcfkiajllip
   TUTORIAL_DATA_BASE_PATH: /mnt/storage/iorad/capture/tutorials
   AVATARS_BASE_PATH: /mnt/storage/iorad/assets/avatars
@@ -58,8 +60,26 @@ configMapEnv:
   CACHE_BASE_PATH: /mnt/storage/iorad/cache
   CRYPTO_BASE_PATH: /mnt/storage/iorad/crypto
   CRYPTO_TUTORIAL_DATA_BASE_PATH: /mnt/storage/iorad/crypto/tutorials
+  STRIPE_ENV: test
+  HOST: iorad.k8s.local
+  PORT: 8080
+  CDN_HOST: cdn.iorad.k8s.local
 
-secretEnv: {}
+secretEnv:
+  API_SECRET: testing
+  COOKIE_SECRET: yumyum
+  API_IORAD_ENCRYPTION_KEY: testing
+  API_IORAD_BASE64_ENCRYPTION_KEY: testing
+  API_IORAD_BASE64_ENCRYPTION_IV: testing
+  GOOGLE_CLIENT_SECRET: testing
+  AWS_POLLY_IDENTITY_POOL_ID: testing
+  GOOGLE_TRANSLATE_API_KEY_JSON_BASE64: eyJ0eXBlIjoic2VydmljZV9hY2NvdW50IiwicHJvamVjdF9pZCI6InRlcmFjeS1pb3JhZCIsInByaXZhdGVfa2V5X2lkIjoiIn0K
+  GOOGLE_TEXT_TO_SPEECH_API_KEY_JSON_BASE64: eyJ0eXBlIjoic2VydmljZV9hY2NvdW50IiwicHJvamVjdF9pZCI6InRlcmFjeS1pb3JhZCIsInByaXZhdGVfa2V5X2lkIjoiIn0K
+  VIDEO_ACCESS_TOKEN: testing
+  TWILIO_ACCOUNT_SID: MOCK
+  TWILIO_AUTH_TOKEN: testing
+  TWILIO_VERIFICATION_SID: testing
+  RECAPTCHA_V3_SECRET_KEY: testing
 
 
 volumeMounts:
