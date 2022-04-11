@@ -53,10 +53,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           gcr-json-key-base64: ${{ secrets.GCR_KEY_FILE_BASE64 }}
 
-      - name: Patch GPG key's secret
-        run: |
-          kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "gcr.io"}]}'
-
       - name: Load kind docker images
         run: |
           changed_list=$(ct list-changed --config ct.yaml)
@@ -76,5 +72,5 @@ jobs:
         # should create different k8s cluster versions
       - name: Run chart-testing (install)
         run: |
-          ct install --namespace default --config ct.yaml --charts charts/iorad
+          ct install --namespace default --config ct.yaml
         timeout-minutes: 30

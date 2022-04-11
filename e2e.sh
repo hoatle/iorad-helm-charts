@@ -93,7 +93,7 @@ lint_charts() {
 }
 
 install_charts() {
-    docker_exec ct install --namespace default --charts charts/iorad
+    docker_exec ct install --namespace default
     echo
 }
 

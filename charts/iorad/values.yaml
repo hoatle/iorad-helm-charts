@@ -46,7 +46,18 @@ readinessProbe:
   failureThreshold: 10
 
 
-configMapEnv: {}
+configMapEnv:
+  GOOGLE_CLIENT_ID: 473312344366-0h62k936v0bbl00ceelsrn68ibudkpds.apps.googleusercontent.com
+  RECAPTCHA_V3_SITE_KEY: 6Lc09rQUAAAAAHcEPwhvhuhUqvdtQn_SOQnYBW28
+  GOOGLE_EXTENSION_ID: fheghmognccmbkljflobhkcfkiajllip
+  TUTORIAL_DATA_BASE_PATH: /mnt/storage/iorad/capture/tutorials
+  AVATARS_BASE_PATH: /mnt/storage/iorad/assets/avatars
+  FAVICONS_BASE_PATH: /mnt/storage/iorad/assets/favicons
+  PRODUCTS_BASE_PATH: /mnt/storage/iorad/assets/products
+  SITEMAPS_BASE_PATH: /mnt/storage/iorad/sitemaps
+  CACHE_BASE_PATH: /mnt/storage/iorad/cache
+  CRYPTO_BASE_PATH: /mnt/storage/iorad/crypto
+  CRYPTO_TUTORIAL_DATA_BASE_PATH: /mnt/storage/iorad/crypto/tutorials
 
 secretEnv: {}
 
