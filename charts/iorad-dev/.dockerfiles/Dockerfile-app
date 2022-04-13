@@ -1,0 +1,13 @@
+ARG NODE_VERSION=12.22
+
+FROM node:$NODE_VERSION
+
+RUN mkdir -p /opt/app
+
+ENV TERM=xterm APP=/opt/app
+
+RUN yarn global add grunt-cli bower
+
+ADD package.json bower.json Gruntfile.js $APP/
+
+WORKDIR $APP

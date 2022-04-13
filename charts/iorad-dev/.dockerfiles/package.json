@@ -1,0 +1,14 @@
+{
+  "name": "iorad-dev-app",
+  "version": "0.1",
+  "description": "iorad-dev-app chart example",
+  "devDependencies": {
+    "@babel/core": "^7.9.6",
+    "grunt": "~0.4.1",
+    "grunt-babel": "^8.0.0",
+    "grunt-concurrent": "~0.1.0",
+    "grunt-contrib-clean": "~0.4.0",
+    "grunt-contrib-watch": "~0.4.0",
+    "matchdep": "~0.1.1"
+  }
+}

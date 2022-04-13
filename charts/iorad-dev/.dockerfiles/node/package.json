@@ -1,0 +1,12 @@
+{
+  "name": "iorad-dev",
+  "version": "0.1",
+  "description": "iorad-dev chart example",
+  "scripts": {
+    "dev": "node index.js",
+    "watch-client": "node webpack.js"
+  },
+  "dependencies": {
+    "express": "^4.17.3"
+  }
+}

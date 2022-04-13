@@ -1,0 +1,72 @@
+{{- $fullname := include "iorad.fullname" . -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $fullname }}-cleanup-job
+  labels:
+    app.kubernetes.io/name: {{ include "iorad.name" . }}
+    helm.sh/chart: {{ include "iorad.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded
+spec:
+  template:
+    metadata:
+      name: {{ $fullname }}-cleanup-job
+      labels:
+        app.kubernetes.io/name: {{ include "iorad.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: cleanup-job
+        image: "alpine:latest"
+        command:
+        - sh
+        - -c
+        - |
+          #!/bin/bash
+
+          cd /mnt/storage/iorad/static
+
+          for i in *; do
+            if ! grep -qxFe "$i" origin_static_dir.txt; then
+              echo "Deleting: $i"
+              rm -rf "$i"
+            fi
+          done
+
+          cd /mnt/storage/iorad/static/dist
+
+          for i in *; do
+            if ! grep -qxFe "$i" origin_dist_dir.txt; then
+              echo "Deleting: $i"
+              rm -rf "$i"
+            fi
+          done
+
+        volumeMounts:
+          - name: storage
+            mountPath: /mnt/
+      {{- if .Values.volumes }}
+      volumes:
+      {{- range .Values.volumes }}
+      {{- if .persistentVolumeClaim }}
+      - name: {{ .name }}
+        persistentVolumeClaim:
+          {{- if .persistentVolumeClaim.existing }}
+          claimName: {{ .persistentVolumeClaim.claimName }}
+          {{- else }}
+          claimName: {{ $fullname }}-{{ .persistentVolumeClaim.claimName }}
+          {{- end }}
+          readOnly: {{ default false .persistentVolumeClaim.readOnly }}
+      {{- else }}
+      - {{ . | toYaml | nindent 8 | trim }}
+      {{- end }}
+      {{- end }}
+      {{- end }}

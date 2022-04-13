@@ -44,11 +44,33 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1.2.0
         with:
-          config: e2e-kind/kind-config.yaml
+          config: kind/kind-config.yaml
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Login to Docker registries
+        uses: teracyhq-incubator/.github/actions/docker-multiple-login-develop@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          gcr-json-key-base64: ${{ secrets.GCR_KEY_FILE_BASE64 }}
+
+      - name: Load kind docker images
+        run: |
+          changed_list=$(ct list-changed --config ct.yaml)
+
+          if [[ -n "$changed_list" ]]; then
+              for i in "${changed_list[@]}"
+              do
+                  if  [[ $i == charts/* ]];
+                  then
+                      echo "$i";
+                      find ./$i -name "autorun.sh" -exec chmod +x {} \; -exec {} \; || true
+                  fi
+              done
+          fi   
         if: steps.list-changed.outputs.changed == 'true'
 
         # should create different k8s cluster versions
-
       - name: Run chart-testing (install)
-        run: ct install --config ct.yaml
+        run: |
+          ct install --namespace default --config ct.yaml
         timeout-minutes: 30
