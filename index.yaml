@@ -14,4 +14,56 @@ entries:
     urls:
     - https://github.com/hoatle/iorad-helm-charts/releases/download/example-0.1.0-alpha.1/example-0.1.0-alpha.1.tgz
     version: 0.1.0-alpha.1
+  iorad:
+  - apiVersion: v2
+    appVersion: "0.1"
+    created: "2022-04-13T09:55:27.602274728Z"
+    dependencies:
+    - condition: redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: ~10.6.10
+    description: iorad helm chart for Kubernetes
+    digest: ef4e1ae4853b9cd92aea269588e937a5e04cbdb48ec89fe51606b47722ef3d0c
+    maintainers:
+    - email: hq@teracy.com
+      name: teracyhq
+    name: iorad
+    type: application
+    urls:
+    - https://github.com/hoatle/iorad-helm-charts/releases/download/iorad-0.1.0-alpha.1/iorad-0.1.0-alpha.1.tgz
+    version: 0.1.0-alpha.1
+  iorad-cdn:
+  - apiVersion: v2
+    appVersion: "0.1"
+    created: "2022-04-13T09:55:27.750659156Z"
+    description: iorad cdn Helm chart for Kubernetes
+    digest: 6c9672b96d6714be3b473e34512c8800d73bce96a774b27448dd20ec450a8d48
+    maintainers:
+    - email: hq@teracy.com
+      name: teracyhq
+    name: iorad-cdn
+    type: application
+    urls:
+    - https://github.com/hoatle/iorad-helm-charts/releases/download/iorad-cdn-0.1.0-alpha.1/iorad-cdn-0.1.0-alpha.1.tgz
+    version: 0.1.0-alpha.1
+  iorad-dev:
+  - apiVersion: v2
+    appVersion: "0.1"
+    created: "2022-04-13T09:55:27.868960235Z"
+    dependencies:
+    - condition: redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: ~10.6.10
+    description: iorad helm chart for Kubernetes dev mode
+    digest: d90704697e346c45df30bbb3d3312395137f0ab893aa6880ae931b1c27c6c6c2
+    maintainers:
+    - email: hq@teracy.com
+      name: teracyhq
+    name: iorad-dev
+    type: application
+    urls:
+    - https://github.com/hoatle/iorad-helm-charts/releases/download/iorad-dev-0.1.0-alpha.1/iorad-dev-0.1.0-alpha.1.tgz
+    version: 0.1.0-alpha.1
 generated: "2022-02-21T05:09:30.129344361Z"
