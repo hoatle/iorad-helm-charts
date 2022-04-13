@@ -106,4 +106,5 @@ main() {
     load_kind_docker_image
     install_charts
 }
-load_kind_docker_image
+
+main
