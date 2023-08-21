@@ -1,16 +1,14 @@
 apiVersion: v2
 appVersion: "0.1"
-version: 0.1.0-alpha.1
+version: 1.0.0
 name: iorad-dev
 description: iorad helm chart for Kubernetes dev mode
 type: application
-
 maintainers:
-  - email: hq@teracy.com
-    name: teracyhq
-
+- email: hq@teracy.com
+  name: teracyhq
 dependencies:
 - name: redis
-  version: "~10.6.10"
+  version: "~16.13.2"
   repository: "https://charts.bitnami.com/bitnami"
   condition: redis.enabled

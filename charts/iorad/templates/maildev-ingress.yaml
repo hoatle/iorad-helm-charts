@@ -1,6 +1,6 @@
-{{- if .Values.ingress.enabled -}}
+{{- if .Values.maildev.enabled -}}
 {{- $fullName := include "iorad.fullname" . -}}
-{{- $ingressPath := .Values.ingress.path -}}
+{{- $ingressPath := .Values.maildev.ingress.path -}}
 {{- $kubeVersion  := .Capabilities.KubeVersion.GitVersion -}}
 {{- if semverCompare ">=1.19-0" $kubeVersion -}}
 apiVersion: networking.k8s.io/v1
@@ -11,20 +11,20 @@ apiVersion: extensions/v1beta1
 {{- end }}
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: {{ $fullName }}-maildev
   labels:
-    app.kubernetes.io/name: {{ include "iorad.name" . }}
+    app.kubernetes.io/name: {{ include "iorad.name" . }}-maildev
     helm.sh/chart: {{ include "iorad.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- with .Values.ingress.annotations }}
+{{- with .Values.maildev.ingress.annotations }}
   annotations:
 {{ toYaml . | indent 4 }}
 {{- end }}
 spec:
-{{- if .Values.ingress.tls }}
+{{- if .Values.maildev.ingress.tls }}
   tls:
-  {{- range .Values.ingress.tls }}
+  {{- range .Values.maildev.ingress.tls }}
     - hosts:
       {{- range .hosts }}
         - {{ . | quote }}
@@ -33,7 +33,7 @@ spec:
   {{- end }}
 {{- end }}
   rules:
-  {{- range .Values.ingress.hosts }}
+  {{- range .Values.maildev.ingress.hosts }}
     - host: {{ . | quote }}
       http:
         paths:
@@ -42,13 +42,13 @@ spec:
           pathType: Prefix
           backend:
             service:
-              name: {{ $fullName }}
+              name: {{ $fullName }}-maildev
               port:
                 name: http
         {{- else }}
         - path: {{ $ingressPath }}
             backend:
-              serviceName: {{ $fullName }}
+              serviceName: {{ $fullName }}-maildev
               servicePort: http
         {{- end }}
   {{- end }}

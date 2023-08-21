@@ -2,3 +2,4 @@ kind/.kube/*
 !kind/.kube/.gitkeep
 node_modules/
 yarn*
+.DS_Store

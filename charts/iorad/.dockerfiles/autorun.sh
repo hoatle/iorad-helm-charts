@@ -9,9 +9,13 @@ docker_exec() {
 docker_exec kubectl apply -f charts/iorad/.dockerfiles/pvc.yaml
 
 readonly CLUSTER_NAME=${1:-'chart-testing'}
+readonly DOCKER_IMAGE="gcr.io/teracy-iorad/${K8S_NAMESPACE:-iorad}/iorad/app:develop"
 
-echo "docker pull gcr.io/teracy-iorad/iorad/iorad/app:develop"
-docker pull gcr.io/teracy-iorad/iorad/iorad/app:develop
+echo "image pull $DOCKER_IMAGE"
+docker image pull $DOCKER_IMAGE
 
-echo "kind load docker-image gcr.io/teracy-iorad/iorad/iorad/app:develop --name $CLUSTER_NAME"
-kind load docker-image gcr.io/teracy-iorad/iorad/iorad/app:develop --name $CLUSTER_NAME
+echo "docker tag $DOCKER_IMAGE iorad/app:develop"
+docker tag $DOCKER_IMAGE iorad/app:develop
+
+echo "kind load docker-image iorad/app:develop --name $CLUSTER_NAME"
+kind load docker-image iorad/app:develop --name $CLUSTER_NAME

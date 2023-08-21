@@ -1,0 +1,25 @@
+{{- if .Values.maildev.enabled -}}
+{{- $fullname := include "iorad.fullname" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "iorad.fullname" . }}-maildev
+  labels:
+    app.kubernetes.io/name: {{ include "iorad.name" . }}-maildev
+    helm.sh/chart: {{ include "iorad.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{ include "iorad.name" . }}-maildev
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: smtp
+      protocol: TCP
+      port: {{ .Values.maildev.smtpPort }}
+      targetPort: {{ .Values.maildev.smtpPort }}
+    - name: http
+      protocol: TCP
+      port: {{ .Values.maildev.webPort }}
+      targetPort: {{ .Values.maildev.webPort }}
+{{- end }}

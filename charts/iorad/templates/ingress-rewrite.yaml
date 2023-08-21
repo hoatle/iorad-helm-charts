@@ -1,6 +1,9 @@
 {{- if .Values.ingressRewrite.enabled -}}
 {{- $fullName := include "iorad.fullname" . -}}
-{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+{{- $kubeVersion := .Capabilities.KubeVersion.GitVersion -}}
+{{- if semverCompare ">=1.19-0" $kubeVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" $kubeVersion -}}
 apiVersion: networking.k8s.io/v1beta1
 {{- else -}}
 apiVersion: extensions/v1beta1
@@ -34,10 +37,20 @@ spec:
     http:
       paths:
       {{- range .http.paths }}
-      - backend:
-          serviceName: {{ .backend.serviceName }}
-          servicePort: {{ .backend.servicePort }}
-        path: {{ .path }}
+      {{- if semverCompare ">=1.19-0" $kubeVersion }}
+        - path: {{ .path }}
+          pathType: {{ .pathType }}
+          backend:
+            service:
+              name: {{ .backend.service.name }}
+              port:
+                name: {{ .backend.service.port.name }}
+      {{- else }}
+        - backend:
+            serviceName: {{ .backend.serviceName }}
+            servicePort: {{ .backend.servicePort }}
+          path: {{ .path }}
+      {{- end }}
       {{- end }}
   {{- end }}
 {{- end }}

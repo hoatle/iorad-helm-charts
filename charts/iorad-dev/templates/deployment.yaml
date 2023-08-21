@@ -122,10 +122,6 @@ spec:
           echo "pwd"
           pwd
 
-          ls
-
-          cat package.json
-
           yarn install --tldjs-update-rules
 
           echo "yarn run dev"
