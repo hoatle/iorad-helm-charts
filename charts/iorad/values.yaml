@@ -7,169 +7,71 @@ replicaCount: 1
 revision:
 
 image:
-  repository: gcr.io/teracy-iorad/iorad/iorad/app
+  repository: iorad/app
   tag: develop
   pullPolicy: IfNotPresent
 
 nameOverride: ""
+
 fullnameOverride: ""
 
-lifecycle:
-  postStart:
-    exec:
-      command:
-      - sh
-      - -c
-      - |
-        # save origin file
-        ls /opt/app/node/static > /opt/app/node/static/origin_static_dir.txt
-        ls /opt/app/node/static/dist > /opt/app/node/static/dist/origin_dist_dir.txt
+lifecycle: {}
 
-        # for cdn
-        mkdir -p /mnt/storage/iorad/static
-        cp -rf /opt/app/node/static/. /mnt/storage/iorad/static/
-
-livenessProbe:
-  httpGet:
-    path: /healthz
-    port: http
-  initialDelaySeconds: 240
-  timeoutSeconds: 30
-  periodSeconds: 10
-readinessProbe:
-  httpGet:
-    path: /healthz
-    port: http
-  initialDelaySeconds: 120
-  timeoutSeconds: 30
-  periodSeconds: 10
-  failureThreshold: 10
-
+livenessProbe: {}
 
 configMapEnv:
   API_HOST: localhost
   API_PORT: 3030
-  GOOGLE_CLIENT_ID: 473312344366-0h62k936v0bbl00ceelsrn68ibudkpds.apps.googleusercontent.com
-  RECAPTCHA_V3_SITE_KEY: testing
-  GOOGLE_EXTENSION_ID: fheghmognccmbkljflobhkcfkiajllip
-  TUTORIAL_DATA_BASE_PATH: /mnt/storage/iorad/capture/tutorials
-  AVATARS_BASE_PATH: /mnt/storage/iorad/assets/avatars
-  FAVICONS_BASE_PATH: /mnt/storage/iorad/assets/favicons
-  PRODUCTS_BASE_PATH: /mnt/storage/iorad/assets/products
-  SITEMAPS_BASE_PATH: /mnt/storage/iorad/sitemaps
-  CACHE_BASE_PATH: /mnt/storage/iorad/cache
-  CRYPTO_BASE_PATH: /mnt/storage/iorad/crypto
-  CRYPTO_TUTORIAL_DATA_BASE_PATH: /mnt/storage/iorad/crypto/tutorials
-  STRIPE_ENV: test
-  HOST: iorad.k8s.local
+  HOST: localhost
   PORT: 8080
-  CDN_HOST: cdn.iorad.k8s.local
+  TUTORIAL_DATA_BASE_PATH: /fake
+  SITEMAPS_BASE_PATH: /fake
+  AVATARS_BASE_PATH: /fake
+  FAVICONS_BASE_PATH: /fake
+  PRODUCTS_BASE_PATH: /fake
+  CACHE_BASE_PATH: fake
+  VIDEO_ACCESS_TOKEN: fake
+  GOOGLE_CLIENT_ID: fake
+  GOOGLE_EXTENSION_ID: fake
+  GOOGLE_TEXT_TO_SPEECH_API_KEY_JSON_BASE64: fake
+  GOOGLE_TRANSLATE_API_KEY_JSON_BASE64: fake
+  RECAPTCHA_V3_SITE_KEY: fake
+  TWILIO_VERIFICATION_SID: fake
+  TWILIO_AUTH_TOKEN: fake
+  TWILIO_ACCOUNT_SID: fake
+  AWS_POLLY_IDENTITY_POOL_ID: us-east-1:fake
+  AWS_ACCESS_KEY_ID: FAKE
 
 secretEnv:
-  API_SECRET: testing
-  COOKIE_SECRET: yumyum
-  API_IORAD_ENCRYPTION_KEY: testing
-  API_IORAD_BASE64_ENCRYPTION_KEY: testing
-  API_IORAD_BASE64_ENCRYPTION_IV: testing
-  GOOGLE_CLIENT_SECRET: testing
-  AWS_POLLY_IDENTITY_POOL_ID: testing
-  GOOGLE_TRANSLATE_API_KEY_JSON_BASE64: eyJ0eXBlIjoic2VydmljZV9hY2NvdW50IiwicHJvamVjdF9pZCI6InRlcmFjeS1pb3JhZCIsInByaXZhdGVfa2V5X2lkIjoiIn0K
-  GOOGLE_TEXT_TO_SPEECH_API_KEY_JSON_BASE64: eyJ0eXBlIjoic2VydmljZV9hY2NvdW50IiwicHJvamVjdF9pZCI6InRlcmFjeS1pb3JhZCIsInByaXZhdGVfa2V5X2lkIjoiIn0K
-  VIDEO_ACCESS_TOKEN: testing
-  TWILIO_ACCOUNT_SID: MOCK
-  TWILIO_AUTH_TOKEN: testing
-  TWILIO_VERIFICATION_SID: testing
-  RECAPTCHA_V3_SECRET_KEY: testing
-
+  API_SECRET: fake
+  API_IORAD_AES256_BASE64_ENCRYPTION_KEY: fake
+  API_IORAD_AES256_BASE64_ENCRYPTION_IV: fake
+  API_IORAD_BASE64_ENCRYPTION_KEY: fake
+  API_IORAD_BASE64_ENCRYPTION_IV: fake
+  API_IORAD_ENCRYPTION_KEY: fake
+  RECAPTCHA_V3_SECRET_KEY: fake
+  GOOGLE_CLIENT_SECRET: fake
+  AWS_SECRET_ACCESS_KEY: fake
 
 volumeMounts:
 - name: storage
   mountPath: /mnt/storage/
-  # subPath: storage # should use subPath by default so that we can use one pvc for all (TODO)
 
 volumes:
-- name: storage  # you can define other kinds of volumes instead of pvc
+- name: storage
   persistentVolumeClaim:
-    claimName: iorad-storage-develop  # specify the right pvc name
+    claimName: iorad-storage-develop
     existing: true
 
 service:
   type: ClusterIP
   port: 8080
 
-ingress:
-  enabled: true
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    # add an annotation indicating the issuer to use.
-    certmanager.k8s.io/cluster-issuer: ca-cluster-issuer  # letsencrypt-cluster-issuer
-    # sticky session
-    # nginx.ingress.kubernetes.io/affinity: "cookie"
-    # nginx.ingress.kubernetes.io/session-cookie-name: "route"
-    # nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
-    # nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
-    # upload size limit
-    nginx.ingress.kubernetes.io/proxy-body-size: 20m
-    nginx.ingress.kubernetes.io/client-header-buffer-size: 64k
-    nginx.ingress.kubernetes.io/large-client-header-buffers: 8 64k
-    # static redirect
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      rewrite ^/user/createNewDesktopTutorial/(.*)$ /createNewDesktopTutorial/$1 redirect;
-      rewrite ^/hrtech$ https://www.iorad.com/checkout?specialPlanId=494 redirect;
-      rewrite ^/360learning-partner$ https://sites.google.com/iorad.com/360learning/home redirect;
-      rewrite ^/lessonly-partner$ https://sites.google.com/iorad.com/lessonly/home redirect;
-      rewrite ^/workramp-partner$ https://sites.google.com/iorad.com/workramp/home redirect;
-      rewrite ^/blog/?$ https://theioradlife.com redirect;
+ingress: {}
 
-  path: /
-  hosts:
-  - iorad.k8s.local
-  tls:  # < placing a host in the TLS config will indicate a cert should be created
-  - hosts:
-    - iorad.k8s.local
-    secretName: iorad-k8s-local-tls
+ingressRewrite: {}
 
-# url rewrite for legacy porting
-ingressRewrite:
-  enabled: true
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    # sticky session
-    # nginx.ingress.kubernetes.io/affinity: "cookie"
-    # nginx.ingress.kubernetes.io/session-cookie-name: "route"
-    # nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
-    # nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
-  hosts:
-    - host: iorad.k8s.local
-      http:
-        paths:
-        - backend:
-            serviceName: iorad-cdn-dev  # iorad-cdn service name
-            servicePort: http
-          path: /(webstart\/.*)
-        - backend:
-            serviceName: iorad-cdn-dev  # iorad-cdn service name
-            servicePort: http
-          path: /(server/webstart\/.*)
-  tls:  # < placing a host in the TLS config will indicate a cert should be created
-  - hosts:
-    - iorad.k8s.local
-    secretName: iorad-k8s-local-tls
-
-
-resources:
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #  cpu: 100m
-  #  memory: 128Mi
-  requests:
-    cpu: 15m
-    memory: 450Mi
+resources: {}
 
 nodeSelector: {}
 
@@ -177,48 +79,17 @@ tolerations: []
 
 affinity: {}
 
-
-##
-## mysql chart configuration
-##
 mysql:
-  enabled: false  # to use mysqlha by default instead
-  imageTag: 5.7  # to use for wait-for-db init container
-  host:  # for external db
+  enabled: false
+  imageTag: 5.7
   port: 3306
-  # mysqlRootPassword: iorad
-  mysqlUser:
-  mysqlPassword:
-  mysqlDatabase:
-  # persistence:
-  #   existingClaim: iorad--mysql
-
 
 migration:
   enabled: false
-  repository: gcr.io/teracy-iorad/iorad/migration
-  tag: develop
-  resources: {}
-    # limits:
-    #   cpu: 256m
-    #   memory: 100Mi
-    # requests:
-    #  cpu: 100m
-    #  memory: 128Mi
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}
-
-
-# imagePullSecrets:
-#  - name: gcr.io
-#   - name: registry.gitlab.com
 
 redis:
   enabled: true
-  password: secret
-  cluster:
-    enabled: false
-  master:
-    persistence:
-      size: 1Gi
+  architecture: standalone
+
+maildev:
+  enabled: false

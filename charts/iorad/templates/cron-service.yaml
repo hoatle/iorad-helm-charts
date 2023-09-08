@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "iorad.fullname" . }}-cron
+  labels:
+    app.kubernetes.io/name: {{ include "iorad.name" . }}-cron
+    helm.sh/chart: {{ include "iorad.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "iorad.name" . }}-cron
+    app.kubernetes.io/instance: {{ .Release.Name }}
